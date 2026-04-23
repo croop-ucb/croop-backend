@@ -1,7 +1,18 @@
 from sqlalchemy import String, Text, DateTime, Boolean, ForeignKey, func
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.session import Base
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from app.models.vinculo_planta_dispositivo import VinculoPlantaDispositivo
+    from app.models.irrigacao import Irrigacao
+    from app.models.leitura_umidade import LeituraUmidade
+    from app.models.historico_cuidado import HistoricoCuidado
+    from app.models.recomendacao_ia import RecomendacaoIA
+    from app.models.cronograma_cuidado import CronogramaCuidado
+    from app.models.notificacao import Notificacao
 
 
 class Planta(Base):
@@ -32,3 +43,11 @@ class Planta(Base):
 
     observacoes: Mapped[str | None] = mapped_column(Text, nullable=True)
     ativa: Mapped[bool | None] = mapped_column(Boolean, nullable=True, default=True)
+    vinculos: Mapped[list["VinculoPlantaDispositivo"]] = relationship(back_populates="planta")
+    irrigacoes: Mapped[list["Irrigacao"]] = relationship(back_populates="planta")
+    leituras: Mapped[list["LeituraUmidade"]] = relationship(back_populates="planta")
+    historicos: Mapped[list["HistoricoCuidado"]] = relationship(back_populates="planta")
+    recomendacoes: Mapped[list["RecomendacaoIA"]] = relationship(back_populates="planta")
+    cronogramas: Mapped[list["CronogramaCuidado"]] = relationship(back_populates="planta")
+    notificacoes: Mapped[list["Notificacao"]] = relationship(back_populates="planta")
+    
