@@ -1,0 +1,4 @@
+[lint.per-file-ignores]
+"alembic/env.py" = ["E402", "F401"]
+"app/models/*.py" = ["F821"]
+"app/db/base.py" = ["F401"]
