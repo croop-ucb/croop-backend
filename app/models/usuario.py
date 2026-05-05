@@ -1,7 +1,13 @@
+from typing import TYPE_CHECKING
+
 from sqlalchemy import String, DateTime, func
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.session import Base
+
+if TYPE_CHECKING:
+    from app.models.dispositivo_iot import DispositivoIot
+    from app.models.notificacao import Notificacao
 
 
 class Usuario(Base):
@@ -47,3 +53,7 @@ class Usuario(Base):
         String(50),
         nullable=True
     )
+
+    # Relationships
+    dispositivos: Mapped[list["DispositivoIot"]] = relationship(back_populates="usuario")
+    notificacoes: Mapped[list["Notificacao"]] = relationship(back_populates="usuario")
