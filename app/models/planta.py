@@ -15,7 +15,7 @@ if TYPE_CHECKING:
     from app.models.notificacao import Notificacao
 
 # comentário
-
+# mais um comentário
 
 class Planta(Base):
     __tablename__ = "plantas"
