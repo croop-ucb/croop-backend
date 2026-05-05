@@ -14,6 +14,8 @@ if TYPE_CHECKING:
     from app.models.cronograma_cuidado import CronogramaCuidado
     from app.models.notificacao import Notificacao
 
+# comentário
+
 
 class Planta(Base):
     __tablename__ = "plantas"
