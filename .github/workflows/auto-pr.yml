@@ -1,0 +1,80 @@
+name: Auto PR
+
+on:
+  push:
+    branches-ignore:
+      - main
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  open-pr:
+    name: Open pull request
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Extract issue number from branch name
+        id: issue
+        shell: bash
+        run: |
+          BRANCH_NAME="${GITHUB_REF_NAME}"
+          ISSUE_NUMBER=$(echo "$BRANCH_NAME" | grep -oE '^[0-9]+' || true)
+
+          if [ -z "$ISSUE_NUMBER" ]; then
+            echo "No issue number found in branch name."
+            echo "issue_number=" >> "$GITHUB_OUTPUT"
+          else
+            echo "issue_number=$ISSUE_NUMBER" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create pull request
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          ISSUE_NUMBER="${{ steps.issue.outputs.issue_number }}"
+          BRANCH_NAME="${GITHUB_REF_NAME}"
+
+          if gh pr view "$BRANCH_NAME" --json number >/dev/null 2>&1; then
+            echo "Pull request already exists for this branch."
+            exit 0
+          fi
+
+          if [ -n "$ISSUE_NUMBER" ]; then
+            gh pr create \
+              --base main \
+              --head "$BRANCH_NAME" \
+              --title "Resolve issue #$ISSUE_NUMBER" \
+              --body "Closes #$ISSUE_NUMBER"
+          else
+            gh pr create \
+              --base main \
+              --head "$BRANCH_NAME" \
+              --title "Atualiza backend" \
+              --body "PR criada automaticamente."
+          fi
+
+      - name: Enable auto-merge
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          ISSUE_NUMBER="${{ steps.issue.outputs.issue_number }}"
+          BRANCH_NAME="${GITHUB_REF_NAME}"
+
+          if [ -n "$ISSUE_NUMBER" ]; then
+            gh pr merge "$BRANCH_NAME" \
+              --auto \
+              --squash \
+              --subject "Resolve issue #$ISSUE_NUMBER" \
+              --body "Closes #$ISSUE_NUMBER"
+          else
+            gh pr merge "$BRANCH_NAME" \
+              --auto \
+              --squash \
+              --subject "Atualização automática" \
+              --body "PR criada automaticamente."
+          fi
