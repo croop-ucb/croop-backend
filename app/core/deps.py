@@ -16,3 +16,10 @@ def get_current_user(token: str = Depends(oauth2_scheme)):
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Token inválido ou expirado"
         )
+
+def get_current_user():
+    # 🔴 Aqui você liga com JWT depois
+    class User:
+        id_usuario = 1  # mock
+
+    return User()
