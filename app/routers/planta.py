@@ -16,7 +16,7 @@ def criar_planta(
     db: Session = Depends(get_db),
     user=Depends(get_current_user)
 ):
-    return crud.create_planta(db, data, user.id_usuario)
+    return crud.create_planta(db, data, user["id_usuario"])
 
 
 # 🔹 GET - Listar plantas do usuário
@@ -25,7 +25,7 @@ def listar_plantas(
     db: Session = Depends(get_db),
     user=Depends(get_current_user)
 ):
-    return crud.get_plantas(db, user.id_usuario)
+    return crud.get_plantas(db, user["id_usuario"])
 
 
 # 🔹 GET - Detalhar planta
@@ -35,7 +35,7 @@ def detalhar_planta(
     db: Session = Depends(get_db),
     user=Depends(get_current_user)
 ):
-    planta = crud.get_planta(db, planta_id, user.id_usuario)
+    planta = crud.get_planta(db, planta_id, user["id_usuario"])
 
     if not planta:
         raise HTTPException(status_code=404, detail="Planta não encontrada")
@@ -51,7 +51,7 @@ def atualizar_planta(
     db: Session = Depends(get_db),
     user=Depends(get_current_user)
 ):
-    planta = crud.get_planta(db, planta_id, user.id_usuario)
+    planta = crud.get_planta(db, planta_id, user["id_usuario"])
 
     if not planta:
         raise HTTPException(status_code=404, detail="Planta não encontrada")
@@ -66,7 +66,7 @@ def deletar_planta(
     db: Session = Depends(get_db),
     user=Depends(get_current_user)
 ):
-    planta = crud.get_planta(db, planta_id, user.id_usuario)
+    planta = crud.get_planta(db, planta_id, user["id_usuario"])
 
     if not planta:
         raise HTTPException(status_code=404, detail="Planta não encontrada")
