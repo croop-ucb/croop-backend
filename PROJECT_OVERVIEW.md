@@ -441,7 +441,167 @@ passar por `crud/` ou `services/`. Viola a separação de camadas e dificulta te
 
 ---
 
-## 13. Recomendações para Futuras Sessões
+## 13. Endpoints Existentes
+
+### Autenticação (`/usuarios`)
+
+| Método | Rota | Auth | Descrição |
+|--------|------|------|-----------|
+| POST | `/usuarios/cadastro` | Não | Cadastra novo usuário |
+| POST | `/usuarios/login` | Não | Autentica e retorna JWT |
+| GET | `/usuarios/protegido` | Bearer | Rota de teste de autenticação |
+
+#### POST `/usuarios/cadastro`
+**Request body:**
+```json
+{
+  "nome": "string",
+  "cpf": "string",
+  "email": "user@example.com",
+  "senha": "string",
+  "confirmacao_senha": "string"
+}
+```
+**Regras de senha:** mínimo 6 chars, 1 maiúscula, 1 minúscula, 1 número, sem espaços, diferente do email.
+
+**Response 201:**
+```json
+{
+  "id_usuario": 1,
+  "nome": "string",
+  "email": "user@example.com",
+  "data_cadastro": "2024-01-01T00:00:00"
+}
+```
+**Erros:** `409` e-mail já cadastrado.
+
+---
+
+#### POST `/usuarios/login`
+**Request body:**
+```json
+{
+  "email": "user@example.com",
+  "senha": "string"
+}
+```
+**Response 200:**
+```json
+{
+  "access_token": "eyJ...",
+  "token_type": "bearer"
+}
+```
+**Erros:** `401` credenciais inválidas.
+
+---
+
+#### GET `/usuarios/protegido`
+**Header:** `Authorization: Bearer <token>`
+
+**Response 200:**
+```json
+{
+  "mensagem": "Você está autenticado!",
+  "user": { "sub": "email@example.com", "id_usuario": 1 }
+}
+```
+
+---
+
+### Plantas (`/plantas`) — todos requerem autenticação
+
+| Método | Rota | Auth | Descrição |
+|--------|------|------|-----------|
+| POST | `/plantas/` | Bearer | Cria nova planta |
+| GET | `/plantas/` | Bearer | Lista plantas do usuário autenticado |
+| GET | `/plantas/{planta_id}` | Bearer | Detalha uma planta |
+| PUT | `/plantas/{planta_id}` | Bearer | Atualiza uma planta |
+| DELETE | `/plantas/{planta_id}` | Bearer | Remove uma planta |
+
+**Header obrigatório em todos:** `Authorization: Bearer <token>`
+
+#### POST `/plantas/`
+**Request body:**
+```json
+{
+  "id_especie": 1,
+  "ambiente": "string",
+  "nome_personalizado": "string (opcional)",
+  "porte": "string (opcional)",
+  "localizacao_descricao": "string (opcional)",
+  "observacoes": "string (opcional)",
+  "ativa": true
+}
+```
+**Response 201:**
+```json
+{
+  "id_planta": 1,
+  "id_usuario": 1,
+  "id_especie": 1,
+  "ambiente": "string",
+  "nome_personalizado": "string",
+  "porte": "string",
+  "localizacao_descricao": "string",
+  "observacoes": "string",
+  "ativa": true,
+  "data_cadastro": "2024-01-01T00:00:00"
+}
+```
+
+---
+
+#### GET `/plantas/`
+**Response 200:** array de `PlantaResponse` (mesmo schema acima).
+
+---
+
+#### GET `/plantas/{planta_id}`
+**Response 200:** `PlantaResponse`.
+**Erros:** `404` planta não encontrada.
+
+---
+
+#### PUT `/plantas/{planta_id}`
+**Request body (todos opcionais):**
+```json
+{
+  "nome_personalizado": "string",
+  "porte": "string",
+  "ambiente": "string",
+  "localizacao_descricao": "string",
+  "observacoes": "string",
+  "ativa": true
+}
+```
+**Response 200:** `PlantaResponse` atualizado.
+**Erros:** `404` planta não encontrada.
+
+---
+
+#### DELETE `/plantas/{planta_id}`
+**Response:** `204 No Content`.
+**Erros:** `404` planta não encontrada.
+
+---
+
+### Utilitários
+
+| Método | Rota | Auth | Descrição |
+|--------|------|------|-----------|
+| GET | `/health` | Não | Verifica se a API está rodando |
+| GET | `/db-test` | Não | Verifica conexão com o banco de dados |
+
+#### GET `/health`
+**Response 200:** `{ "status": "ok" }`
+
+#### GET `/db-test`
+**Response 200:** `{ "status": "connected" }` ou `{ "status": "error", "detail": "..." }`
+
+---
+
+## 14. Recomendações para Futuras Sessões
 
 ### Correções imediatas (antes de qualquer nova feature)
 

@@ -78,7 +78,7 @@ DEEPL_AVISO_CHARS = 400_000
 MAX_RETRIES = 5
 BASE_DELAY = 1.5
 REQUEST_TIMEOUT = 30
-DELAY_PERENUAL = 0.35
+DELAY_PERENUAL = 1.5
 DEEPL_BATCH = 30
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -225,7 +225,7 @@ def buscar_listagem() -> list[dict]:
     total_api = primeira.get("total", 0)
 
     # Sorteia páginas aleatórias do pool completo (exclui página 1, já buscada)
-    pool = list(range(2, ultima_disponivel + 1))
+    pool = list(range(2, min(ultima_disponivel, 100) + 1))
     random.shuffle(pool)
     paginas_extras = pool[: paginas_necessarias - 1]
 
@@ -252,7 +252,7 @@ def buscar_listagem() -> list[dict]:
             log.warning(f"  Página {pagina} falhou. Continuando...")
 
     random.shuffle(acumuladas)
-    resultado = acumuladas[:LIMITE_ESPECIES]
+    resultado = [e for e in acumuladas if e.get("id", 9999) <= 3000][:LIMITE_ESPECIES]
     log.info(f"Listagem concluída: {len(resultado)} espécies para processar.")
     return resultado
 
