@@ -22,6 +22,7 @@ def criar_planta(
     db: Session = Depends(get_db),
     user=Depends(get_current_user)
 ):
+    return crud.create_planta(db, data, user.id_usuario)
     return crud.create_planta(db, data, user["id_usuario"])
 
 
@@ -31,6 +32,7 @@ def listar_plantas(
     db: Session = Depends(get_db),
     user=Depends(get_current_user)
 ):
+    return crud.get_plantas(db, user.id_usuario)
     return crud.get_plantas(db, user["id_usuario"])
 
 
@@ -41,6 +43,7 @@ def detalhar_planta(
     db: Session = Depends(get_db),
     user=Depends(get_current_user)
 ):
+    planta = crud.get_planta(db, planta_id, user.id_usuario)
     planta = crud.get_planta(db, planta_id, user["id_usuario"])
 
     if not planta:
@@ -57,6 +60,7 @@ def atualizar_planta(
     db: Session = Depends(get_db),
     user=Depends(get_current_user)
 ):
+    planta = crud.get_planta(db, planta_id, user.id_usuario)
     planta = crud.get_planta(db, planta_id, user["id_usuario"])
 
     if not planta:
@@ -72,11 +76,13 @@ def deletar_planta(
     db: Session = Depends(get_db),
     user=Depends(get_current_user)
 ):
+    planta = crud.get_planta(db, planta_id, user.id_usuario)
     planta = crud.get_planta(db, planta_id, user["id_usuario"])
 
     if not planta:
         raise HTTPException(status_code=404, detail="Planta não encontrada")
 
+    crud.delete_planta(db, planta)
     crud.delete_planta(db, planta)
 
 @router.post("/{planta_id}/irrigar")
