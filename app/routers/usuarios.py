@@ -53,7 +53,7 @@ def login(dados: UsuarioLoginRequest, db: Session = Depends(get_db)):
             detail="Credenciais inválidas"
         )
 
-    token = criar_token({"sub": usuario.email})
+    token = criar_token({"sub": usuario.email, "id_usuario": usuario.id_usuario})
 
     return {
         "access_token": token,
