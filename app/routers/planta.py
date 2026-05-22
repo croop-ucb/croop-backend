@@ -6,15 +6,12 @@ from app.schemas.planta import PlantaCreate, PlantaResponse, PlantaUpdate
 from app.crud import planta as crud
 from app.core.deps import get_current_user
 
-<<<<<<< HEAD
-=======
 from app.models.planta import Planta
 from app.models.vinculo_planta_dispositivo import VinculoPlantaDispositivo
 from app.models.leitura_umidade import LeituraUmidade
 from app.models.historico_cuidado import HistoricoCuidado
 from app.models.especie import Especie
 
->>>>>>> 81c51251f8622653de5e3aaf8008e86db6258897
 router = APIRouter(prefix="/plantas", tags=["Plantas"])
 
 
@@ -25,11 +22,8 @@ def criar_planta(
     db: Session = Depends(get_db),
     user=Depends(get_current_user)
 ):
-<<<<<<< HEAD
     return crud.create_planta(db, data, user.id_usuario)
-=======
     return crud.create_planta(db, data, user["id_usuario"])
->>>>>>> 81c51251f8622653de5e3aaf8008e86db6258897
 
 
 # 🔹 GET - Listar plantas do usuário
@@ -38,11 +32,8 @@ def listar_plantas(
     db: Session = Depends(get_db),
     user=Depends(get_current_user)
 ):
-<<<<<<< HEAD
     return crud.get_plantas(db, user.id_usuario)
-=======
     return crud.get_plantas(db, user["id_usuario"])
->>>>>>> 81c51251f8622653de5e3aaf8008e86db6258897
 
 
 # 🔹 GET - Detalhar planta
@@ -52,11 +43,8 @@ def detalhar_planta(
     db: Session = Depends(get_db),
     user=Depends(get_current_user)
 ):
-<<<<<<< HEAD
     planta = crud.get_planta(db, planta_id, user.id_usuario)
-=======
     planta = crud.get_planta(db, planta_id, user["id_usuario"])
->>>>>>> 81c51251f8622653de5e3aaf8008e86db6258897
 
     if not planta:
         raise HTTPException(status_code=404, detail="Planta não encontrada")
@@ -72,11 +60,8 @@ def atualizar_planta(
     db: Session = Depends(get_db),
     user=Depends(get_current_user)
 ):
-<<<<<<< HEAD
     planta = crud.get_planta(db, planta_id, user.id_usuario)
-=======
     planta = crud.get_planta(db, planta_id, user["id_usuario"])
->>>>>>> 81c51251f8622653de5e3aaf8008e86db6258897
 
     if not planta:
         raise HTTPException(status_code=404, detail="Planta não encontrada")
@@ -91,18 +76,13 @@ def deletar_planta(
     db: Session = Depends(get_db),
     user=Depends(get_current_user)
 ):
-<<<<<<< HEAD
     planta = crud.get_planta(db, planta_id, user.id_usuario)
-=======
     planta = crud.get_planta(db, planta_id, user["id_usuario"])
->>>>>>> 81c51251f8622653de5e3aaf8008e86db6258897
 
     if not planta:
         raise HTTPException(status_code=404, detail="Planta não encontrada")
 
-<<<<<<< HEAD
     crud.delete_planta(db, planta)
-=======
     crud.delete_planta(db, planta)
 
 @router.post("/{planta_id}/irrigar")
@@ -222,4 +202,3 @@ def irrigar_planta(
     return {
         "mensagem": "Irrigação manual enviada com sucesso"
     }
->>>>>>> 81c51251f8622653de5e3aaf8008e86db6258897
