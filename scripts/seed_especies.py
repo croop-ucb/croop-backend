@@ -40,8 +40,8 @@ from app.models.especie import Especie
 # Chaves das APIs (arquivo local, não versionar)
 # ──────────────────────────────────────────────────────────────────────────────
 
-CHAVE_PERENUAL = "https://perenual.com/"
-CHAVE_DEEPL = "https://www.deepl.com/en/translator"
+CHAVE_PERENUAL = "sk-Smzu6a0cae60834a417435"
+CHAVE_DEEPL = "fb866eb7-f727-42c4-a6d4-9c065733b022:fx"
 
 # ──────────────────────────────────────────────────────────────────────────────
 # URLs das APIs
