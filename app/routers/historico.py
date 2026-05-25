@@ -9,10 +9,7 @@ from app.models.leitura_umidade import LeituraUmidade
 from app.models.notificacao import Notificacao
 from app.models.planta import Planta
 
-from app.schemas.historico import (
-    HistoricoItemResponse,
-    HistoricoResponse
-)
+from app.schemas.historico import HistoricoResponse
 
 router = APIRouter(
     prefix="/historico",
