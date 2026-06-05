@@ -15,5 +15,5 @@ def listar_notificacoes(
     user=Depends(get_current_user)
 ):
     return db.query(Notificacao).filter(
-        Notificacao.id_usuario == user.id_usuario
+        Notificacao.id_usuario == user["id_usuario"]
     ).order_by(Notificacao.data_envio.desc()).all()
