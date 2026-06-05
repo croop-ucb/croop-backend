@@ -60,6 +60,15 @@ def login(dados: UsuarioLoginRequest, db: Session = Depends(get_db)):
         "token_type": "bearer"
     }
 
+@router.get("/me", response_model=UsuarioCadastroResponse)
+def get_me(db: Session = Depends(get_db), user=Depends(get_current_user)):
+    usuario = db.query(Usuario).filter(
+        Usuario.id_usuario == user["id_usuario"]
+    ).first()
+    if not usuario:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+    return usuario
+
 @router.get("/protegido")
 def rota_protegida(user=Depends(get_current_user)):
     return {"mensagem": "Você está autenticado!", "user": user}
