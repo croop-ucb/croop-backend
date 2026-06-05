@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from app.db.session import get_db
@@ -22,3 +22,15 @@ def listar_especies(
             Especie.nome_comum.ilike(termo) | Especie.nome_cientifico.ilike(termo)
         )
     return query.order_by(Especie.nome_comum).all()
+
+
+@router.get("/{especie_id}", response_model=EspecieResponse)
+def obter_especie(
+    especie_id: int,
+    db: Session = Depends(get_db),
+    _=Depends(get_current_user),
+):
+    especie = db.query(Especie).filter(Especie.id_especie == especie_id).first()
+    if not especie:
+        raise HTTPException(status_code=404, detail="Espécie não encontrada")
+    return especie
