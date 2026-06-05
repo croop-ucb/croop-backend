@@ -9,6 +9,7 @@ from app.routers.especie import router as especie_router
 from app.routers.notificacao import router as notificacao_router
 from app.routers.eventos import router as eventos_router
 from app.routers import historico
+from app.routers import cronograma
 
 app = FastAPI(title=settings.app_name)
 
@@ -34,3 +35,4 @@ def root():
     return {"message": "Croop API running"}
 
 app.include_router(historico.router)
+app.include_router(cronograma.router)

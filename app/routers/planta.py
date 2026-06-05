@@ -11,6 +11,7 @@ from app.models.vinculo_planta_dispositivo import VinculoPlantaDispositivo
 from app.models.leitura_umidade import LeituraUmidade
 from app.models.historico_cuidado import HistoricoCuidado
 from app.models.especie import Especie
+from app.services.cronograma_service import gerar_e_persistir_cronograma
 
 router = APIRouter(prefix="/plantas", tags=["Plantas"])
 
@@ -22,7 +23,12 @@ def criar_planta(
     db: Session = Depends(get_db),
     user=Depends(get_current_user)
 ):
-    return crud.create_planta(db, data, user["id_usuario"])
+    planta = crud.create_planta(db, data, user["id_usuario"])
+    try:
+        gerar_e_persistir_cronograma(db, planta.id_planta, user["id_usuario"])
+    except Exception:
+        pass
+    return planta
 
 
 # 🔹 GET - Listar plantas do usuário
