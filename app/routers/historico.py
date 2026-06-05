@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends
+from sqlalchemy import union_all, select, literal, cast, String, func
 from sqlalchemy.orm import Session
 
 from app.db.session import get_db
@@ -26,85 +27,49 @@ def consultar_historico(
 ):
     id_usuario = user["id_usuario"]
 
-    historico_final = []
-
-    # =========================
-    # Histórico de cuidados
-    # =========================
-
-    historicos = (
-        db.query(HistoricoCuidado)
-        .join(Planta)
-        .filter(Planta.id_usuario == id_usuario)
-        .all()
+    q1 = (
+        select(
+            HistoricoCuidado.tipo_evento.label("tipo"),
+            HistoricoCuidado.descricao_evento.label("descricao"),
+            HistoricoCuidado.data_hora_evento.label("data_hora"),
+        )
+        .join(Planta, HistoricoCuidado.id_planta == Planta.id_planta)
+        .where(Planta.id_usuario == id_usuario)
     )
 
-    for item in historicos:
-        historico_final.append({
-            "tipo": item.tipo_evento,
-            "descricao": item.descricao_evento,
-            "data_hora": item.data_hora_evento
-        })
-
-    # =========================
-    # Leituras de umidade
-    # =========================
-
-    leituras = (
-        db.query(LeituraUmidade)
-        .join(Planta)
-        .filter(Planta.id_usuario == id_usuario)
-        .all()
+    q2 = (
+        select(
+            literal("leitura_umidade").label("tipo"),
+            func.concat("Umidade registrada: ", cast(LeituraUmidade.valor_umidade, String), "%").label("descricao"),
+            LeituraUmidade.data_hora_leitura.label("data_hora"),
+        )
+        .join(Planta, LeituraUmidade.id_planta == Planta.id_planta)
+        .where(Planta.id_usuario == id_usuario)
     )
 
-    for leitura in leituras:
-        historico_final.append({
-            "tipo": "leitura_umidade",
-            "descricao": f"Umidade registrada: {leitura.valor_umidade}%",
-            "data_hora": leitura.data_hora_leitura
-        })
-
-    # =========================
-    # Notificações
-    # =========================
-
-    notificacoes = (
-        db.query(Notificacao)
-        .join(Planta)
-        .filter(Planta.id_usuario == id_usuario)
-        .all()
+    q3 = (
+        select(
+            literal("notificacao").label("tipo"),
+            Notificacao.mensagem.label("descricao"),
+            Notificacao.data_envio.label("data_hora"),
+        )
+        .where(Notificacao.id_usuario == id_usuario)
     )
 
-    for notificacao in notificacoes:
-        historico_final.append({
-            "tipo": "notificacao",
-            "descricao": notificacao.mensagem,
-            "data_hora": notificacao.data_hora_envio
-        })
+    combined = union_all(q1, q2, q3).subquery()
 
-    # =========================
-    # Ordenar por data
-    # =========================
+    total = db.execute(select(func.count()).select_from(combined)).scalar()
 
-    historico_final.sort(
-        key=lambda item: item["data_hora"],
-        reverse=True
-    )
-
-    # =========================
-    # Paginação
-    # =========================
-
-    total = len(historico_final)
-
-    inicio = (pagina - 1) * limite
-    fim = inicio + limite
-
-    registros_paginados = historico_final[inicio:fim]
+    rows = db.execute(
+        select(combined)
+        .order_by(combined.c.data_hora.desc())
+        .limit(limite)
+        .offset((pagina - 1) * limite)
+    ).mappings().all()
 
     return {
         "pagina": pagina,
         "limite": limite,
         "total": total,
-        "registros": registros_paginados
+        "registros": [dict(row) for row in rows],
     }

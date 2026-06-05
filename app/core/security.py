@@ -1,7 +1,9 @@
 import bcrypt
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from jose import jwt
 from jose import JWTError
+
+from app.core.config import settings
 
 
 def hash_senha(senha: str) -> str:
@@ -11,14 +13,14 @@ def hash_senha(senha: str) -> str:
 def verificar_senha(senha: str, senha_hash: str) -> bool:
     return bcrypt.checkpw(senha.encode(), senha_hash.encode())
 
-SECRET_KEY = "senha_aleatoria_token1234"  # pode ser a mesma do .env depois
+SECRET_KEY = settings.secret_key
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
 
 def criar_token(dados: dict):
     to_encode = dados.copy()
-    expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    expire = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 

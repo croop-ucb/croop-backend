@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from app.models.notificacao import Notificacao
 
@@ -12,7 +12,7 @@ def pode_enviar_notificacao(
     tipo: str,
     planta_id: int | None = None
 ):
-    limite = datetime.utcnow() - timedelta(minutes=INTERVALO_MINUTOS)
+    limite = datetime.now(timezone.utc) - timedelta(minutes=INTERVALO_MINUTOS)
 
     query = db.query(Notificacao).filter(
         Notificacao.id_usuario == user_id,

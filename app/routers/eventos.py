@@ -18,7 +18,7 @@ def evento_sensor(
 ):
     processar_evento_sensor(
         db,
-        user.id_usuario,
+        user["id_usuario"],
         planta_id,
         umidade,
         sensor_ok
