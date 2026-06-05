@@ -21,6 +21,7 @@ class PlantaCreate(PlantaBase):
 
 # 🔹 Update
 class PlantaUpdate(BaseModel):
+    id_especie: Optional[int] = None
     nome_personalizado: Optional[str] = None
     porte: Optional[str] = None
     ambiente: Optional[str] = None
