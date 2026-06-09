@@ -10,6 +10,7 @@ from app.routers.notificacao import router as notificacao_router
 from app.routers.eventos import router as eventos_router
 from app.routers import historico
 from app.routers import cronograma
+from app.routers import esp32
 
 app = FastAPI(title=settings.app_name)
 
@@ -36,3 +37,4 @@ def root():
 
 app.include_router(historico.router)
 app.include_router(cronograma.router)
+app.include_router(esp32.router)

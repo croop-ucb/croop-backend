@@ -12,6 +12,9 @@ from .recomendacao_ia import RecomendacaoIA
 from .cronograma_cuidado import CronogramaCuidado
 from .item_cronograma import ItemCronograma
 from .notificacao import Notificacao
+from .leitura_sensor import LeituraSensor
+from .evento_irrigacao import EventoIrrigacao
+from .comando_irrigacao import ComandoIrrigacao
 
 __all__ = [
     "Usuario",
@@ -28,4 +31,7 @@ __all__ = [
     "CronogramaCuidado",
     "ItemCronograma",
     "Notificacao",
+    "LeituraSensor",
+    "EventoIrrigacao",
+    "ComandoIrrigacao",
 ]
