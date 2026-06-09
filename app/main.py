@@ -16,7 +16,10 @@ app = FastAPI(title=settings.app_name)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:8081"],
+    allow_origins=[
+        "http://localhost:8081",
+        "https://croop.ddns.net",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
