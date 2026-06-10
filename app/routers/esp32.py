@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -193,8 +194,19 @@ def status_planta(
         .limit(1)
     ).scalar_one_or_none()
 
+    # Firmware envia leitura a cada 30s; 90s = 3 ciclos sem resposta → offline
+    _OFFLINE_THRESHOLD_SECONDS = 90
+    dispositivo_online = False
+    if ultima_leitura is not None:
+        agora = datetime.now(timezone.utc)
+        ultima_ts = ultima_leitura.timestamp
+        if ultima_ts.tzinfo is None:
+            ultima_ts = ultima_ts.replace(tzinfo=timezone.utc)
+        dispositivo_online = (agora - ultima_ts).total_seconds() <= _OFFLINE_THRESHOLD_SECONDS
+
     return StatusPlantaResponse(
         ultima_leitura=UltimaLeituraStatus.model_validate(ultima_leitura) if ultima_leitura else None,
         ultimo_evento_irrigacao=UltimaIrrigacaoStatus.model_validate(ultimo_evento) if ultimo_evento else None,
         tem_comando_pendente=tem_pendente is not None,
+        dispositivo_online=dispositivo_online,
     )
