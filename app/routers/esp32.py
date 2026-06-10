@@ -6,8 +6,10 @@ from sqlalchemy.orm import Session
 from app.core.deps import get_current_user, get_device
 from app.db.session import get_db
 from app.models.comando_irrigacao import ComandoIrrigacao
+from app.models.cronograma_cuidado import CronogramaCuidado
 from app.models.especie import Especie
 from app.models.evento_irrigacao import EventoIrrigacao
+from app.models.item_cronograma import ItemCronograma
 from app.models.leitura_sensor import LeituraSensor
 from app.models.planta import Planta
 from app.services.evento_notificacao_service import processar_evento_sensor
@@ -103,14 +105,38 @@ def registrar_evento_irrigacao(
     db.commit()
     db.refresh(evento)
 
-    gerar_notificacao(
-        db=db,
-        user_id=planta.id_usuario,
-        tipo="irrigacao_automatica",
-        titulo="Irrigação automática realizada",
-        mensagem=f"Sua planta foi regada automaticamente por {data.duracao_segundos}s",
-        planta_id=data.planta_id,
-    )
+    item_em_execucao = db.execute(
+        select(ItemCronograma)
+        .join(CronogramaCuidado, ItemCronograma.id_cronograma == CronogramaCuidado.id_cronograma)
+        .where(
+            CronogramaCuidado.id_planta == data.planta_id,
+            ItemCronograma.status_execucao == "em_execucao",
+        )
+        .order_by(ItemCronograma.data_prevista.asc())
+        .limit(1)
+    ).scalar_one_or_none()
+
+    if item_em_execucao:
+        item_em_execucao.status_execucao = "executado"
+        item_em_execucao.data_execucao = datetime.now(timezone.utc)
+        db.commit()
+        gerar_notificacao(
+            db=db,
+            user_id=planta.id_usuario,
+            tipo="irrigacao_cronograma",
+            titulo="Irrigação conforme recomendação da IA",
+            mensagem=f"Sua planta foi regada conforme o cronograma por {data.duracao_segundos}s",
+            planta_id=data.planta_id,
+        )
+    else:
+        gerar_notificacao(
+            db=db,
+            user_id=planta.id_usuario,
+            tipo="irrigacao_automatica",
+            titulo="Irrigação automática realizada",
+            mensagem=f"Sua planta foi regada automaticamente por {data.duracao_segundos}s",
+            planta_id=data.planta_id,
+        )
 
     return evento
 
@@ -204,7 +230,26 @@ def consultar_comando(
     ).scalar_one_or_none()
 
     if not comando:
-        return ComandoESP32Response(irrigar=False, umidade_minima=umidade_minima, umidade_maxima=umidade_maxima)
+        item_cronograma = db.execute(
+            select(ItemCronograma)
+            .join(CronogramaCuidado, ItemCronograma.id_cronograma == CronogramaCuidado.id_cronograma)
+            .where(
+                CronogramaCuidado.id_planta == planta_id,
+                CronogramaCuidado.ativo.is_(True),
+                ItemCronograma.tipo_cuidado == "irrigacao",
+                ItemCronograma.status_execucao == "pendente",
+                ItemCronograma.data_prevista <= datetime.now(timezone.utc),
+            )
+            .order_by(ItemCronograma.data_prevista.asc())
+            .limit(1)
+        ).scalar_one_or_none()
+
+        if not item_cronograma:
+            return ComandoESP32Response(irrigar=False, umidade_minima=umidade_minima, umidade_maxima=umidade_maxima)
+
+        item_cronograma.status_execucao = "em_execucao"
+        db.commit()
+        return ComandoESP32Response(irrigar=True, umidade_minima=umidade_minima, umidade_maxima=umidade_maxima)
 
     comando.pendente = False
     db.commit()
