@@ -12,6 +12,8 @@ class PlantaBase(BaseModel):
     localizacao_descricao: Optional[str] = None
     observacoes: Optional[str] = None
     ativa: Optional[bool] = True
+    faixa_umidade_min: Optional[float] = Field(None, ge=0, le=100)
+    faixa_umidade_max: Optional[float] = Field(None, ge=0, le=100)
 
 
 # 🔹 Create
@@ -28,6 +30,8 @@ class PlantaUpdate(BaseModel):
     localizacao_descricao: Optional[str] = None
     observacoes: Optional[str] = None
     ativa: Optional[bool] = None
+    faixa_umidade_min: Optional[float] = Field(None, ge=0, le=100)
+    faixa_umidade_max: Optional[float] = Field(None, ge=0, le=100)
 
 
 # 🔹 Response

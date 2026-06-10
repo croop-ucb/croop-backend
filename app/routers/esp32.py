@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 from app.core.deps import get_current_user, get_device
 from app.db.session import get_db
 from app.models.comando_irrigacao import ComandoIrrigacao
+from app.models.especie import Especie
 from app.models.evento_irrigacao import EventoIrrigacao
 from app.models.leitura_sensor import LeituraSensor
 from app.models.planta import Planta
@@ -53,12 +54,16 @@ def registrar_leitura(
     db.commit()
     db.refresh(leitura)
 
+    especie = db.get(Especie, planta.id_especie)
+    umidade_min, umidade_max = _resolver_thresholds(planta, especie)
     processar_evento_sensor(
         db=db,
         user_id=planta.id_usuario,
         planta_id=data.planta_id,
         umidade=data.umidade_percentual,
         sensor_ok=True,
+        umidade_min=umidade_min,
+        umidade_max=umidade_max,
     )
 
     return leitura
@@ -160,12 +165,34 @@ def solicitar_irrigacao(
     )
 
 
+_UMIDADE_MINIMA_DEFAULT = 30.0
+_UMIDADE_MAXIMA_DEFAULT = 80.0
+
+
+def _resolver_thresholds(planta: Planta, especie: Especie | None) -> tuple[float, float]:
+    umidade_min = (
+        float(planta.faixa_umidade_min) if planta.faixa_umidade_min is not None
+        else (float(especie.faixa_umidade_min) if especie and especie.faixa_umidade_min is not None
+              else _UMIDADE_MINIMA_DEFAULT)
+    )
+    umidade_max = (
+        float(planta.faixa_umidade_max) if planta.faixa_umidade_max is not None
+        else (float(especie.faixa_umidade_max) if especie and especie.faixa_umidade_max is not None
+              else _UMIDADE_MAXIMA_DEFAULT)
+    )
+    return umidade_min, umidade_max
+
+
 @router.get("/comando/{planta_id}", response_model=ComandoESP32Response)
 def consultar_comando(
     planta_id: int,
     db: Session = Depends(get_db),
     _=Depends(get_device),
 ):
+    planta = _get_planta_or_404(planta_id, db)
+    especie = db.get(Especie, planta.id_especie)
+    umidade_minima, umidade_maxima = _resolver_thresholds(planta, especie)
+
     comando = db.execute(
         select(ComandoIrrigacao)
         .where(
@@ -177,11 +204,11 @@ def consultar_comando(
     ).scalar_one_or_none()
 
     if not comando:
-        return ComandoESP32Response(irrigar=False)
+        return ComandoESP32Response(irrigar=False, umidade_minima=umidade_minima, umidade_maxima=umidade_maxima)
 
     comando.pendente = False
     db.commit()
-    return ComandoESP32Response(irrigar=True)
+    return ComandoESP32Response(irrigar=True, umidade_minima=umidade_minima, umidade_maxima=umidade_maxima)
 
 
 @router.get("/status/{planta_id}", response_model=StatusPlantaResponse)
