@@ -75,3 +75,4 @@ class StatusPlantaResponse(BaseModel):
     ultima_leitura: Optional[UltimaLeituraStatus]
     ultimo_evento_irrigacao: Optional[UltimaIrrigacaoStatus]
     tem_comando_pendente: bool
+    dispositivo_online: bool
