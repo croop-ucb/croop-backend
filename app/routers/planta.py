@@ -144,10 +144,10 @@ def irrigar_planta(
         .first()
     )
 
-    limite_umidade = especie.faixa_umidade_max
-
-    if limite_umidade is None:
-        limite_umidade = 80
+    limite_umidade = (
+        float(planta.faixa_umidade_max) if planta.faixa_umidade_max is not None
+        else (float(especie.faixa_umidade_max) if especie and especie.faixa_umidade_max is not None else 80)
+    )
 
     # Bloqueia irrigação se estiver acima do limite
     if (

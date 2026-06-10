@@ -54,6 +54,8 @@ class IrrigarResponse(BaseModel):
 
 class ComandoESP32Response(BaseModel):
     irrigar: bool
+    umidade_minima: float
+    umidade_maxima: float
 
 
 class UltimaLeituraStatus(BaseModel):

@@ -1,4 +1,4 @@
-from sqlalchemy import String, Text, DateTime, Boolean, ForeignKey, func
+from sqlalchemy import String, Text, DateTime, Boolean, ForeignKey, Numeric, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.session import Base
@@ -36,6 +36,8 @@ class Planta(Base):
     porte: Mapped[str | None] = mapped_column(String(30), nullable=True)
     ambiente: Mapped[str | None] = mapped_column(String(50), nullable=True)
     localizacao_descricao: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    faixa_umidade_min: Mapped[float | None] = mapped_column(Numeric(5, 2), nullable=True)
+    faixa_umidade_max: Mapped[float | None] = mapped_column(Numeric(5, 2), nullable=True)
 
     data_cadastro: Mapped[DateTime] = mapped_column(
         DateTime(timezone=True),
