@@ -9,6 +9,8 @@ from app.models.comando_irrigacao import ComandoIrrigacao
 from app.models.evento_irrigacao import EventoIrrigacao
 from app.models.leitura_sensor import LeituraSensor
 from app.models.planta import Planta
+from app.services.evento_notificacao_service import processar_evento_sensor
+from app.services.notificacao_service import gerar_notificacao
 from app.schemas.esp32 import (
     ComandoESP32Response,
     ComandoIrrigacaoCreate,
@@ -41,7 +43,7 @@ def registrar_leitura(
     db: Session = Depends(get_db),
     _=Depends(get_device),
 ):
-    _get_planta_or_404(data.planta_id, db)
+    planta = _get_planta_or_404(data.planta_id, db)
     leitura = LeituraSensor(
         id_planta=data.planta_id,
         umidade_percentual=data.umidade_percentual,
@@ -50,6 +52,15 @@ def registrar_leitura(
     db.add(leitura)
     db.commit()
     db.refresh(leitura)
+
+    processar_evento_sensor(
+        db=db,
+        user_id=planta.id_usuario,
+        planta_id=data.planta_id,
+        umidade=data.umidade_percentual,
+        sensor_ok=True,
+    )
+
     return leitura
 
 
@@ -78,7 +89,7 @@ def registrar_evento_irrigacao(
     db: Session = Depends(get_db),
     _=Depends(get_device),
 ):
-    _get_planta_or_404(data.planta_id, db)
+    planta = _get_planta_or_404(data.planta_id, db)
     evento = EventoIrrigacao(
         id_planta=data.planta_id,
         duracao_segundos=data.duracao_segundos,
@@ -86,6 +97,16 @@ def registrar_evento_irrigacao(
     db.add(evento)
     db.commit()
     db.refresh(evento)
+
+    gerar_notificacao(
+        db=db,
+        user_id=planta.id_usuario,
+        tipo="irrigacao_automatica",
+        titulo="Irrigação automática realizada",
+        mensagem=f"Sua planta foi regada automaticamente por {data.duracao_segundos}s",
+        planta_id=data.planta_id,
+    )
+
     return evento
 
 

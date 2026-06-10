@@ -25,8 +25,19 @@ def processar_evento_sensor(
         )
         return
 
+    # 🚨 Umidade crítica
+    if umidade is not None and umidade < 10:
+        gerar_notificacao(
+            db,
+            user_id,
+            "umidade_critica",
+            "Umidade crítica",
+            f"Solo com apenas {umidade:.0f}% de umidade — regue imediatamente",
+            planta_id
+        )
+
     # 🌱 Precisa irrigar
-    if umidade is not None and umidade < 30:
+    elif umidade is not None and umidade < 30:
         gerar_notificacao(
             db,
             user_id,
