@@ -4,7 +4,6 @@ from jose import JWTError, jwt
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.core.config import settings
 from app.core.security import SECRET_KEY, ALGORITHM
 from app.db.session import get_db
 
