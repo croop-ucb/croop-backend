@@ -1,9 +1,11 @@
 from fastapi import Depends, Header, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
+from sqlalchemy import select
+from sqlalchemy.orm import Session
 
-from app.core.config import settings
 from app.core.security import SECRET_KEY, ALGORITHM
+from app.db.session import get_db
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/usuarios/login")
 
@@ -19,9 +21,14 @@ def get_current_user(token: str = Depends(oauth2_scheme)):
         )
 
 
-def get_device(x_device_key: str = Header(...)):
-    if not settings.device_api_key or x_device_key != settings.device_api_key:
+def get_device(x_device_key: str = Header(...), db: Session = Depends(get_db)):
+    from app.models.dispositivo_iot import DispositivoIot
+    dispositivo = db.execute(
+        select(DispositivoIot).where(DispositivoIot.codigo_serie == x_device_key)
+    ).scalar_one_or_none()
+    if not dispositivo:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Chave de dispositivo inválida"
+            detail="Dispositivo não autorizado"
         )
+    return dispositivo
